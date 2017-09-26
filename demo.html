@@ -1,0 +1,633 @@
+<!-- Overall, the scene's dimensions are best approximated (x, y, z) 300x150x150 and the origin is located in the center of the floor (on the top of the surface of the floor) -->
+
+<html>
+  <head>
+    <title>Big Hero Six Warehouse Scene</title>
+    <style>
+      /* feel free to style the canvas any way you want. If you want it to
+      use the entire window, set width: 100% and height: 100%. */
+      
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 500px;
+      }
+    </style>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"></script>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls.js"></script>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw.js"></script>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui.min.js"></script>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/contrib/kkjeer_TubeRadialGeometry.js"></script>
+
+  </head>
+<body>
+
+<h1>Big Hero Six Warehouse Scene, by Jennifer Chien</h1>
+
+<p>
+<ul>
+  <li>0:  reset animation to initial state
+  <li>1:  take one step
+  <li>g:  "go" &mdash; start the animation <q>loop</q>
+  <li>SPC:  stop the animation
+</ul>
+
+<script src="BayMax.js"></script>
+<script src="yokai.js"></script>
+<script src="microbot.js"></script>
+
+
+<script>
+
+
+  var mouse = document.getElementById('mouse');
+
+  var scene = new THREE.Scene(); //we always need a scene
+
+  //this will hold all of the variables that we need to access later
+  //any tweaks in variables ie wall color, start positions, etc, can be changed in just one spot
+  //helps clarify instead of having arbitrary numbers embedded in the code
+  var JenniferChienDemoParams = {
+
+    //microbot color, position, shininess
+    //mb = microbot
+    mbColor: 0x000000,
+    mbspecular: 0x111111,
+    mbshiny: 100,
+    mbOrigX: 40,
+    mbOrigY: 40,
+    mbOrigZ: 10,
+
+    //floor x dimension
+    backdropX: 300,
+    //floor y dimension is backdropX/2
+    wallBottomStripY: 40, //also the top strip
+    wallColor: THREE.ColorKeywords.white,
+
+    //spotlight position pointed at baymax
+    spl1x: -10,
+    spl1y: 165,
+    spl1z: 0,
+
+    //spotlight positioned pointed at yokai
+    spl2x: 10,
+    spl2y: 165,
+    spl2z: 0,
+
+    splColor: 0xffffff,
+    splIntensity: 5,
+    splDistance: 200,
+    splAngle: Math.PI/9,
+
+    ambLightColor: 0xffffff,
+    ambLightIntensity: 0.3,
+
+    windOpacity: 0.5,
+    windSide: 70,
+    windowPadding: 30,
+    windowEdgeColor: THREE.ColorKeywords.black,
+    windowColor: 0x00ffff,
+
+    camRotateConstant: 0.005,
+    camRotateRadius: 200
+
+  };
+
+  //create a baymax character and add him to the scene 
+  var baymax = makeBayMax();
+  baymax.position.set(-JenniferChienDemoParams.backdropX/4, 30, 0);
+  baymax.scale.set(0.5, 0.5, 0.5);
+  baymax.rotation.y = Math.PI/2.5; //turn baymax a little less that PI/2 because then you get some of the detail behind it
+  scene.add(baymax);
+
+  //create the yokay character and add him to the scene
+  var yokai = makeYokai();
+  yokai.position.x = (JenniferChienDemoParams.backdropX) /4;
+  scene.add(yokai);
+
+  //create a black, shiny mesh representative of a black metal surface, use it on all microbots
+  var microbotMesh = new THREE.MeshPhongMaterial({color: JenniferChienDemoParams.mbColor, specular: JenniferChienDemoParams.mbspecular, shininess: JenniferChienDemoParams.mbshiny});
+
+  //holds the original position of the microbots that hover around yokai
+  var microbotPosAr = [30, 80, -30, //mbA
+                       60, 50, -25, //mbB
+                       100, 100, -25, //mbC
+                       87, 75, -5, //mbD
+                       95, 80, 20, //mbE
+                       95, 30, 60, //mbF
+                       75, 50, 40, //mbG
+                       39, 20, 45 //mbH
+                       ];
+
+
+  //Microbots A-H cannot be created and added to the scene in a for loop because they need to be accessed later to reposition them
+  var mbA = createMicrobot(microbotMesh);
+  mbA.position.set(microbotPosAr[0], microbotPosAr[1], microbotPosAr[2]);
+  scene.add(mbA);
+
+  var mbB = createMicrobot(microbotMesh);
+  mbB.position.set(microbotPosAr[3], microbotPosAr[4], microbotPosAr[5]);
+  scene.add(mbB);
+
+  var mbC = createMicrobot(microbotMesh);
+  mbC.position.set(microbotPosAr[6], microbotPosAr[7], microbotPosAr[8]);
+  scene.add(mbC);
+
+  var mbD = createMicrobot(microbotMesh);
+  mbD.position.set(microbotPosAr[9], microbotPosAr[10], microbotPosAr[11]);
+  scene.add(mbD);
+
+  var mbE = createMicrobot(microbotMesh);
+  mbE.position.set(microbotPosAr[12], microbotPosAr[13], microbotPosAr[14]);
+  scene.add(mbE);
+
+  var mbF = createMicrobot(microbotMesh);
+  mbF.position.set(microbotPosAr[15], microbotPosAr[16], microbotPosAr[17]);
+  scene.add(mbF);
+
+  var mbG = createMicrobot(microbotMesh);
+  mbG.position.set(microbotPosAr[18], microbotPosAr[19], microbotPosAr[20]);
+  scene.add(mbG);
+
+  var mbH = createMicrobot(microbotMesh);
+  mbH.position.set(microbotPosAr[21], microbotPosAr[22], microbotPosAr[23]);
+  scene.add(mbH);
+
+  //an array that holds all of the hovering microbots
+  var mbHoverArray = [mbA, mbB, mbC, mbD, mbE, mbF, mbG, mbH];
+
+  //call this function when the moust is hovering over the canvas
+  function oneStepHover(){
+
+    //tweak the position of each of the microbots in the direction of a random vector
+    for (var i=0; i<mbHoverArray.length; i++){
+
+      //produces a random whole number between -5 and 5
+      var randomX = Math.floor(Math.random() * 10) - 5; 
+      var randomY = Math.floor(Math.random() * 10) - 5;
+      var randomZ = Math.floor(Math.random() * 10) - 5;
+
+      //adjust the x, y, and z position of the microbot
+      mbHoverArray[i].position.x += randomX/20;
+      mbHoverArray[i].position.y += randomY/20;
+      mbHoverArray[i].position.z += randomZ/20;
+
+      //rotate the microbot in the y direction (so it jitters a bit more random-looking)
+      var randomRotY = (Math.random()-0.5) * Math.PI/30;
+      mbHoverArray[i].rotation.set(0, randomRotY, 0);
+
+    }
+    render();
+  }
+
+  //when the mouse moves, if it is over the canvas, then toggle the oneStepHover() function
+  function onMouseMove (event) {
+    var newx = event.clientX;
+    var newy = event.clientY;
+
+      if (newx<912 && newx>126 && newy<655 && newy>155 ){
+        oneStepHover();
+      }
+
+  };
+
+
+  //these microbots will be used in the animation for Yokai shooting at Baymax
+  //create the first microbot, clone the rest based on microbot1
+  var microbot1 = createMicrobot(microbotMesh);
+  microbot1.position.set(JenniferChienDemoParams.mbOrigX, JenniferChienDemoParams.mbOrigY, JenniferChienDemoParams.mbOrigZ);
+  scene.add(microbot1);
+
+
+  //clone the desired microbots from microbot1
+  
+  var microbotArray1 = [microbot1];
+  var microbotArray2 = [];
+
+  //takes in an array and the number of microbots to add into the array
+  function fillMicrobotArray(mbArray, numMBs){
+    for (var i=0; i<numMBs; i++){
+      var microbotClone = microbot1.clone();
+      mbArray.push(microbotClone);
+    }
+  };
+
+  //creates 4 microbots and adds them to microbotArray1 so they can be accessed again later
+  fillMicrobotArray(microbotArray1, 4);
+  //creates 6 microbots and adds them to micrbotArray2 so they can be accessed again later
+  fillMicrobotArray(microbotArray2, 6)
+
+  var mbAnimParams = {
+    dx: -1,
+    microbotCounterCurr: 0,
+    mbGap: 20,
+
+    tStart: 30,
+    tBreak: 25,
+
+    baymaxDX: -2,
+
+    bayMaxShaketStart: 135,
+    bayMaxShaketEnd: 490
+  };
+
+  var animationState;
+
+  function resetAnimationState(){ //SET ALL THE MICROBOTS TO THERE ORIGINAL POSITION
+    animationState = {
+      time: 0
+    };
+  };
+
+  resetAnimationState();
+
+  function updateState(){
+    console.log("updateState()");
+    animationState.time += 1;
+    console.log("time ", animationState.time);
+
+
+    //reset the microbot position every 7 time steps so they don't stray too far from their original position
+    if (animationState.time % 7 == 0){
+      console.log("re-position the microbots...");
+      for (var i=0; i<mbHoverArray.length; i++){
+        mbHoverArray[i].position.set(microbotPosAr[(i*3)], microbotPosAr[(i*3)+1], microbotPosAr[(i*3)+2]);
+      };
+    };
+   
+    //get floating microbots to move when the animation is being called
+    oneStepHover();
+
+    //takes in microbotArray1 or microbotArray 2 and loops through adjusting the position of each microbot, make alternative calls to this function to control the position of all 10 microbots simultaneously
+    function callingMoveOn5Microbots(startTime, microbotArray){
+    //toggle the moving of the microbots in array 1
+      for (var i=0; i < microbotArray.length; i++){
+
+        var spaceBtwnMB = mbAnimParams.mbGap * i;
+
+        if (animationState.time > spaceBtwnMB + startTime){
+          scene.add(microbotArray[i]);
+          microbotArray[i].position.x += mbAnimParams.dx;
+        }
+        if (microbotArray[i].position.x < -JenniferChienDemoParams.backdropX/4){
+          scene.remove(microbotArray[i]);
+        }
+      }
+    }
+
+    //start first 5 microbots
+    if (animationState.time > mbAnimParams.tStart && animationState.time < 220){
+      callingMoveOn5Microbots(mbAnimParams.tStart, microbotArray1);
+    };
+
+    //loop through all microbots in microbotArray1 and reset their position to original
+    function resetMBPos(){
+      for (var i=0; i < microbotArray1.length; i++){
+
+        scene.remove(microbotArray1[i]);
+        microbotArray1[i].position.set(JenniferChienDemoParams.mbOrigX, 
+                                      JenniferChienDemoParams.mbOrigY, 
+                                      JenniferChienDemoParams.mbOrigZ);
+
+      };
+    };
+
+    //once the first 5 microbots have gone through, reset their position
+    if (animationState.time == 220){
+      resetMBPos();
+    };
+
+    //call second round of 6 microbots
+    if (animationState.time > mbAnimParams.tStart + (microbotArray1.length * mbAnimParams.mbGap) + mbAnimParams.tBreak && animationState.time < 390){
+
+      callingMoveOn5Microbots(mbAnimParams.tStart + (microbotArray1.length * mbAnimParams.mbGap) + mbAnimParams.tBreak, microbotArray2);
+    };
+
+    //repeat calling first 5 microbots
+    if (animationState.time > mbAnimParams.tStart + (microbotArray1.length * mbAnimParams.mbGap) + (mbAnimParams.tBreak*2) + (microbotArray2.length * mbAnimParams.mbGap)){
+
+      callingMoveOn5Microbots(mbAnimParams.tStart + (microbotArray1.length * mbAnimParams.mbGap) + (mbAnimParams.tBreak*2) + (microbotArray2.length * mbAnimParams.mbGap), microbotArray1);
+
+    };
+    
+
+
+
+
+    //if baymax is being hit by the microbots, shift his position left and right
+    if (animationState.time > mbAnimParams.bayMaxShaketStart && animationState.time < mbAnimParams.bayMaxShaketEnd){
+      if (animationState.time%15 == 0){
+        baymax.position.x += mbAnimParams.baymaxDX;
+      }
+      if (animationState.time%30 == 0){
+        baymax.position.x -= mbAnimParams.baymaxDX * 2;
+      }
+    }
+  };
+
+
+
+  function firstState(){
+    resetAnimationState();
+    render();
+  }
+
+
+
+
+  function oneStep(){
+    console.log("oneStep");
+    updateState();
+    render();
+  }
+
+
+
+  // Stored so that we can cancel the animation if we want
+  var animationId = null;                
+   
+
+  function animate(timestamp) {
+      oneStep();
+      animationId = requestAnimationFrame(animate);
+  }
+
+   
+  function stopAnimation() {
+    if( animationId != null ) {
+      cancelAnimationFrame(animationId);
+    }
+  }
+
+
+
+  //holds the first tile for the floor (altogether the floor tiles are 10 * 10)
+  var floor;
+
+  //load the image to map onto the floor tiles
+  TW.loadTexture( 
+    'carpet2.png',
+    function(texture){
+      var geom = new THREE.BoxGeometry(JenniferChienDemoParams.backdropX/10, 15, JenniferChienDemoParams.backdropX/(2*10));
+      var mat = new THREE.MeshPhongMaterial({
+          color: THREE.ColorKeywords.white,
+          shininess: 5,
+          map: texture
+        });
+      floor = new THREE.Mesh(geom, mat);
+      floor.material.side = THREE.DoubleSide;
+      floor.position.y = -15/2;
+      scene.add(floor);
+
+      //tile the floor from back to front, left to right
+      for (var i=0; i<10; i++){
+        for (var j=0; j<10; j++){
+          var floorTile = floor.clone();
+          floorTile.position.x = -JenniferChienDemoParams.backdropX/2 + JenniferChienDemoParams.backdropX/(10*2) + (i*JenniferChienDemoParams.backdropX/10);
+          floorTile.position.z = -JenniferChienDemoParams.backdropX/4 + JenniferChienDemoParams.backdropX/(2*2*10) + (j*JenniferChienDemoParams.backdropX/(10*2));
+          scene.add(floorTile);
+        }
+      };
+      render();
+    });
+
+
+
+
+  //back wall setup
+  var btmWall = new THREE.Mesh(new THREE.PlaneGeometry(JenniferChienDemoParams.backdropX, JenniferChienDemoParams.wallBottomStripY), new THREE.MeshPhongMaterial({color: JenniferChienDemoParams.wallColor, side: THREE.DoubleSide}));
+  btmWall.position.set(0, JenniferChienDemoParams.wallBottomStripY/2, -JenniferChienDemoParams.backdropX/4);
+  scene.add(btmWall);
+
+  var topWall = btmWall.clone();
+  topWall.position.y = (JenniferChienDemoParams.wallBottomStripY* 3/2) + (JenniferChienDemoParams.windSide);
+  scene.add(topWall);
+
+  var windowGapWallBtwnR = new THREE.Mesh(new THREE.PlaneGeometry(JenniferChienDemoParams.windowPadding, JenniferChienDemoParams.windSide), new THREE.MeshPhongMaterial({color: JenniferChienDemoParams.wallColor, side: THREE.DoubleSide}));
+  windowGapWallBtwnR.position.set(JenniferChienDemoParams.windSide/2 + JenniferChienDemoParams.windowPadding/2, JenniferChienDemoParams.backdropX/4,-JenniferChienDemoParams.backdropX/4);
+  scene.add(windowGapWallBtwnR);
+
+  var windowGapWallBtwnL = windowGapWallBtwnR.clone();
+  windowGapWallBtwnL.position.x = -windowGapWallBtwnR.position.x;
+  scene.add(windowGapWallBtwnL);
+
+  var windowGapWallSideR = new THREE.Mesh(new THREE.PlaneGeometry(JenniferChienDemoParams.windowPadding/2, JenniferChienDemoParams.windSide), new THREE.MeshPhongMaterial({color: JenniferChienDemoParams.wallColor, side: THREE.DoubleSide}));
+  windowGapWallSideR.position.set(JenniferChienDemoParams.windSide * 3/2 + JenniferChienDemoParams.windowPadding * 5/4, JenniferChienDemoParams.backdropX/4, -JenniferChienDemoParams.backdropX/4);
+  scene.add(windowGapWallSideR);
+
+  var windowGapWallSideL = windowGapWallSideR.clone();
+  windowGapWallSideL.position.x = -windowGapWallSideR.position.x;
+  scene.add(windowGapWallSideL);
+
+
+
+var windowContainer, w2, w3;
+
+function addWindows(){
+  var pane1 = new THREE.PlaneGeometry(JenniferChienDemoParams.windSide, JenniferChienDemoParams.windSide);
+  var pane1M = new THREE.MeshBasicMaterial({color: JenniferChienDemoParams.windowColor,
+                                            transparent: true,
+                                            side: THREE.DoubleSide,
+                                            opacity: JenniferChienDemoParams.windOpacity
+  });
+
+  //center window
+  windowContainer = new THREE.Object3D();
+  var windowPane = new THREE.Mesh(pane1, pane1M);
+  windowPane.position.set(0, JenniferChienDemoParams.backdropX/4, -JenniferChienDemoParams.backdropX/4);
+  windowContainer.add(windowPane);
+
+  var edge1 = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, JenniferChienDemoParams.windSide, 6, 10), new THREE.MeshBasicMaterial({color: JenniferChienDemoParams.windowEdgeColor}));
+  edge1.position.set(-JenniferChienDemoParams.windSide/2, JenniferChienDemoParams.backdropX/4, -JenniferChienDemoParams.backdropX/4);
+  windowContainer.add(edge1);
+
+  var edge2 = edge1.clone();
+  edge2.position.x += JenniferChienDemoParams.windSide;
+  windowContainer.add(edge2);
+
+  var edge3 = edge1.clone();
+  edge3.rotation.z = Math.PI/2;
+  edge3.position.set(0, JenniferChienDemoParams.backdropX/4 - JenniferChienDemoParams.windSide/2, -JenniferChienDemoParams.backdropX/4);
+  windowContainer.add(edge3);
+
+  var edge4 = edge3.clone();
+  edge4.position.y += JenniferChienDemoParams.windSide;
+  windowContainer.add(edge4);
+
+  var edge5 = edge4.clone();
+  edge5.position.y -= JenniferChienDemoParams.windSide/2;
+  windowContainer.add(edge5);
+
+  scene.add(windowContainer);
+
+  //right window
+  w2 = windowContainer.clone();
+  w2.position.x += JenniferChienDemoParams.windowPadding + JenniferChienDemoParams.windSide;
+  scene.add(w2);
+
+  //left window
+  w3 = windowContainer.clone();
+  w3.position.x -= JenniferChienDemoParams.windowPadding + JenniferChienDemoParams.windSide;
+  scene.add(w3);
+}
+
+addWindows();
+
+
+
+
+
+
+
+  //target for the light pointed at Baymax to point at
+  var baymaxTarget = new THREE.Mesh(new THREE.SphereGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.white}));
+  baymaxTarget.position.set(-JenniferChienDemoParams.backdropX/4, 0, 0);
+  scene.add(baymaxTarget);
+
+  //yellow ball to represent where the light pointed at Baymax is coming from 
+  var lightContainerLeft = new THREE.Object3D();
+  var yellowBall = new THREE.Mesh(new THREE.SphereGeometry(5, 10, 10), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.yellow}));
+  lightContainerLeft.add(yellowBall);
+
+  var outside = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 10, 10, 10, true), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.black}));
+  outside.position.y += 3;
+  lightContainerLeft.add(outside);
+
+  var circleTop = new THREE.Mesh(new THREE.CircleGeometry(6, 10, 10), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.black, side: THREE.DoubleSide}));
+  circleTop.position.set(0, 5, 0);
+  circleTop.rotation.x = Math.PI/2;
+  circleTop.position.y += 3;
+  lightContainerLeft.add(circleTop);
+
+  var rectangleCap = new THREE.Mesh(new THREE.PlaneGeometry(15, 15, 10, 10), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.black, side: THREE.DoubleSide}));
+  rectangleCap.position.y = -2;
+  rectangleCap.rotation.x = Math.PI/2;
+  lightContainerLeft.add(rectangleCap);
+
+  lightContainerLeft.position.set(JenniferChienDemoParams.spl1x, JenniferChienDemoParams.spl1y - 30, JenniferChienDemoParams.spl1z);
+  lightContainerLeft.rotation.set(0, Math.PI/6, -Math.PI/6);
+  scene.add(lightContainerLeft);
+
+  //add the actual spotlight to the scene
+  var spl1 = new THREE.SpotLight(JenniferChienDemoParams.splColor, JenniferChienDemoParams.splIntensity, JenniferChienDemoParams.splDistance, JenniferChienDemoParams.splAngle, 0);
+  spl1.position.set(JenniferChienDemoParams.spl1x, JenniferChienDemoParams.spl1y, JenniferChienDemoParams.spl1z);
+  spl1.target = baymaxTarget;
+  spl1.castShadow = true;
+  scene.add(spl1);
+
+
+
+
+  //target for the light pointed at Yokai to point at
+  var yokaiTarget = new THREE.Mesh(new THREE.SphereGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.white}));
+  yokaiTarget.position.set(JenniferChienDemoParams.backdropX/4, 0, 0);
+  scene.add(yokaiTarget);
+
+  //yellow ball to represent where the light pointed at Baymax is coming from 
+  var lightY = lightContainerLeft.clone();
+  lightY.rotation.set(0, -Math.PI/6, Math.PI/6);
+  lightY.position.set(JenniferChienDemoParams.spl2x, JenniferChienDemoParams.spl2y - 30, JenniferChienDemoParams.spl2z);
+  scene.add(lightY);
+
+  //add the actual spotlight to the scene
+  var spl2 = new THREE.SpotLight(JenniferChienDemoParams.splColor, JenniferChienDemoParams.splIntensity, JenniferChienDemoParams.splDistance, JenniferChienDemoParams.splAngle, 0);
+  spl2.position.set(JenniferChienDemoParams.spl2x, JenniferChienDemoParams.spl2y , JenniferChienDemoParams.spl2z);
+  spl2.target = yokaiTarget;
+  spl2.castShadow = true;
+  scene.add(spl2);  
+
+
+
+
+
+//add ambient lighting
+var ambLight = new THREE.AmbientLight( JenniferChienDemoParams.ambLightColor, JenniferChienDemoParams.ambLightIntensity); // soft white light
+scene.add( ambLight );
+
+
+
+
+
+
+
+
+  // ================================================================
+  // 
+  // We always need a renderer
+
+  var renderer = new THREE.WebGLRenderer();
+
+  // TW.mainInit(renderer,scene);
+  // TW.cameraSetup(renderer,
+  //                scene,
+  //                {minx: -JenniferChienDemoParams.backdropX/2, maxx: JenniferChienDemoParams.backdropX/2,
+  //                 miny: 0, maxy: JenniferChienDemoParams.backdropX/2,
+  //                 minz: -JenniferChienDemoParams.backdropX/4, maxz: JenniferChienDemoParams.backdropX/4});
+
+  //       TW.render();
+
+var camera;
+var cameraParams = {
+
+        camFOVY: 90,
+        aspectRatio: 1.55,
+        near: 1,
+        far: 500
+      };
+
+camera = new THREE.PerspectiveCamera(cameraParams.camFOVY, cameraParams.aspectRatio, cameraParams.near, cameraParams.far);
+
+    //standard camera parameters that do not change through any of the slides
+    
+
+
+
+//we always need a renderer
+function render(){
+  camera.up.set(0, 1, 0);
+
+  camera.position.x = 0 + JenniferChienDemoParams.camRotateRadius * Math.cos( JenniferChienDemoParams.camRotateConstant * animationState.time );  
+  camera.position.y = JenniferChienDemoParams.backdropX/4;       
+  camera.position.z = 0 + JenniferChienDemoParams.camRotateRadius * Math.sin( JenniferChienDemoParams.camRotateConstant * animationState.time );
+
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  
+  renderer.render( scene, camera );
+}
+
+TW.mainInit(renderer, scene);
+
+// invoke it, or you won't see anything
+render();
+
+  // ===========================================================
+
+  firstState();
+
+  TW.setKeyboardCallback("0",firstState,"reset animation");
+  TW.setKeyboardCallback("1",oneStep,"advance by one step");
+  TW.setKeyboardCallback("g",animate,"go:  start animation");
+  TW.setKeyboardCallback(" ",stopAnimation,"stop animation");
+
+  document.addEventListener( 'mousemove', onMouseMove );
+
+  var gui = new dat.GUI();
+  gui.add(JenniferChienDemoParams, 'windowColor', {blue: "#00ffff", yellow: "#f4d142"}).onChange(function () {
+    scene.remove(windowContainer);
+    scene.remove(w2);
+    scene.remove(w3);
+    console.log("window color changed!");
+    addWindows();
+    render();
+  });
+  
+</script>
+
+
+
+</p>
+
+
+</body>
+</html>

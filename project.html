@@ -1,0 +1,858 @@
+<!-- TITLE: project.html
+FINAL PROJECT, CS 307 - COMPUTER GRAPHICS
+FALL 2016, JENNIFER CHIEN
+BIG HERO SIX FIRST FIGHT SCENE
+CHARACTERS: YOKAI, BAYMAX, MISC MICROBOTS
+*I DO NOT OWN ANY OF THE ROYALTIES TO THE SOUNDTRACK, PLEASE DO NOT SUE ME* 
+
+LAST MODIFIED: DEC 23RD, 2016
+BY: JENNIFER CHIEN
+-->
+
+<html>
+  <head>
+    <title>Final Project: Big Hero Six</title>
+    <style>
+      /* feel free to style the canvas any way you want. If you want it to
+      use the entire window, set width: 100% and height: 100%. */
+      
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 500px;
+      }
+
+      p{
+      	width: 1000;
+      }
+
+      body{
+      	font-family: 'Arvo', serif;
+      	background-color: #74AFAD;
+      }
+
+      #headerTitle{
+      	background-color: #ECECEA;
+      	padding: 15;
+      	padding-bottom: 1;
+      }
+
+      #instruction{
+      	margin-left: 25%;
+      }
+
+      #thisprojectcontains{
+      	background-color: #ECECEA;
+        padding-left: 40%
+      }
+
+      #baymax{
+      	background-color: #74AFAD;
+      	padding-left: 30;
+      	padding-top: 10;
+      	padding-bottom: 20;
+      }
+
+      #baymaxSpecs{
+      	position: absolute;
+      	top: 1130;
+      	left: 750;
+      	width: 325;
+      }
+
+      #yokai{
+      	background-color: #ECECEA;
+      	padding-left: 30;
+      	padding-top: 10;
+      	padding-bottom: 20;
+      }
+
+      #yokaiSpecs{
+      	position: absolute;
+      	left: 260;
+      	width: 700;
+      }
+
+      #microbot{
+      	background-color: #74AFAD;
+      	padding-left: 30;
+      	padding-top: 10;
+      	padding-bottom: 20;
+      }
+
+      #microbotSpecs{
+      	position: absolute;
+      	left: 500;
+      	top: 2700;
+      	width: 400;
+      }
+
+      #coolCodingNotes1{
+      	background-color: #ECECEA;
+      	padding-left: 30;
+      	padding-top: 10;
+      	padding-bottom: 20;
+      }
+
+      #coolCodingNote2{
+      	background-color: #74AFAD;
+      	padding-left: 30;
+      	padding-top: 10;
+      	padding-bottom: 20;
+      }
+
+      #transparency1{
+      	background-color: #ECECEA;
+      	padding-left: 30;
+      	padding-top: 10;
+      	padding-bottom: 20;
+      }
+
+      #transparencyText{
+
+      }
+
+      #endcreditsTY{
+      	padding-left: 30;
+      	padding-top: 10;
+      	padding-bottom: 20;
+      }
+
+
+    </style>
+    <link href="https://fonts.googleapis.com/css?family=Arvo" rel="stylesheet">
+
+    <script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"></script>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls.js"></script>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw.js"></script>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui.min.js"></script>
+    <script src="https://cs.wellesley.edu/~cs307/threejs/contrib/kkjeer_TubeRadialGeometry.js"></script>
+  </head>
+<body>
+
+	<script src="BayMax.js"></script>
+	<script src="yokai.js"></script>
+	<script src="microbot.js"></script>
+
+	<div id="headerTitle">
+		<h1>Big Hero Six: Warehouse Scene</h1>
+		<p>By Jennifer Chien, Class of 2019<br>
+			Computer Science 307 - Computer Graphics (Scott Anderson) <br>
+			Wellesley College, Fall 2016 <br>
+		</p>
+
+		<div id = "audio">
+	       <audio controls>
+	        <!-- <source src="thenutcracker.ogg" type="audio/ogg"> -->
+	        <source src="immortals.m4a" type="audio/mpeg">
+	        Your browser does not support the audio element.
+	      </audio>
+	    </div>
+
+
+		<p id="instruction">
+			Press "g" on your keyboard to start the animation! Press the "Space-bar" to stop.<br>
+			You can also <i>hover</i> over the scene to see the microbots hover, ready for action!
+		</p>
+	</div>
+
+	<script>
+
+
+	  var mouse = document.getElementById('mouse');
+
+	  var scene = new THREE.Scene(); //we always need a scene
+
+	  //-------------------------------------------------------------------------------------------
+
+	  //this will hold all of the variables that we need to access later
+	  //any tweaks in variables ie wall color, start positions, etc, can be changed in just one spot
+	  //helps clarify instead of having arbitrary numbers embedded in the code
+	  var JenniferChienDemoParams = {
+
+	    //microbot color, position, shininess
+	    //mb = microbot
+	    mbColor: 0x000000,
+	    mbspecular: 0x111111,
+	    mbshiny: 100,
+	    mbOrigX: 40,
+	    mbOrigY: 40,
+	    mbOrigZ: 10,
+
+	    //floor x dimension
+	    backdropX: 300,
+	    //floor y dimension is backdropX/2
+	    wallBottomStripY: 40, //also the top strip
+	    wallColor: THREE.ColorKeywords.white,
+
+	    //spotlight position pointed at baymax
+	    spl1x: -10,
+	    spl1y: 165,
+	    spl1z: 0,
+
+	    //spotlight positioned pointed at yokai
+	    spl2x: 10,
+	    spl2y: 165,
+	    spl2z: 0,
+
+	    //general spotlight info
+	    splColor: 0xffffff,
+	    splIntensity: 5,
+	    splDistance: 200,
+	    splAngle: Math.PI/9,
+
+	    //ambient light info
+	    ambLightColor: 0xffffff,
+	    ambLightIntensity: 0.3,
+
+	    //window
+	    windOpacity: 0.5,
+	    windSide: 70,
+	    windowPadding: 30,
+	    windowEdgeColor: THREE.ColorKeywords.black,
+	    windowColor: 0x00ffff,
+
+	    //camera rotation params
+	    camRotateConstant: 0.005,
+	    camRotateRadius: 200
+
+	  };
+
+	  //-------------------------------------------------------------------------------------------
+	  //-------------------FIRST SET UP THE SCENE BY ADDING THE MAIN CHARACTERS--------------------
+	  //-----------------------------(BAYMAX, YOKAI, SOME MICROBOTS)-------------------------------
+	  //-------------------------------------------------------------------------------------------
+
+	  //create a baymax character and add him to the scene 
+	  var baymax = makeBayMax();
+	  baymax.position.set(-JenniferChienDemoParams.backdropX/4, 30, 0);
+	  baymax.scale.set(0.5, 0.5, 0.5);
+	  baymax.rotation.y = Math.PI/2.5; //turn baymax a little less that PI/2 because then you get some of the detail behind it
+	  scene.add(baymax);
+
+	  //create the yokay character and add him to the scene
+	  var yokai = makeYokai();
+	  yokai.position.x = (JenniferChienDemoParams.backdropX) /4;
+	  scene.add(yokai);
+
+	  //create a black, shiny mesh representative of a black metal surface, use it on all microbots
+	  var microbotMesh = new THREE.MeshPhongMaterial({color: JenniferChienDemoParams.mbColor, specular: JenniferChienDemoParams.mbspecular, shininess: JenniferChienDemoParams.mbshiny});
+
+	  //holds the original position of the microbots that hover around yokai
+	  var microbotPosAr = [30, 80, -30, //mbA
+	                       60, 50, -25, //mbB
+	                       100, 100, -25, //mbC
+	                       87, 75, -5, //mbD
+	                       95, 80, 20, //mbE
+	                       95, 30, 60, //mbF
+	                       75, 50, 40, //mbG
+	                       39, 20, 45 //mbH
+	                       ];
+
+
+	  //Microbots A-H cannot be created and added to the scene in a for loop because they need to be accessed later to reposition them
+	  var mbA = createMicrobot(microbotMesh);
+	  mbA.position.set(microbotPosAr[0], microbotPosAr[1], microbotPosAr[2]);
+	  scene.add(mbA);
+
+	  var mbB = createMicrobot(microbotMesh);
+	  mbB.position.set(microbotPosAr[3], microbotPosAr[4], microbotPosAr[5]);
+	  scene.add(mbB);
+
+	  var mbC = createMicrobot(microbotMesh);
+	  mbC.position.set(microbotPosAr[6], microbotPosAr[7], microbotPosAr[8]);
+	  scene.add(mbC);
+
+	  var mbD = createMicrobot(microbotMesh);
+	  mbD.position.set(microbotPosAr[9], microbotPosAr[10], microbotPosAr[11]);
+	  scene.add(mbD);
+
+	  var mbE = createMicrobot(microbotMesh);
+	  mbE.position.set(microbotPosAr[12], microbotPosAr[13], microbotPosAr[14]);
+	  scene.add(mbE);
+
+	  var mbF = createMicrobot(microbotMesh);
+	  mbF.position.set(microbotPosAr[15], microbotPosAr[16], microbotPosAr[17]);
+	  scene.add(mbF);
+
+	  var mbG = createMicrobot(microbotMesh);
+	  mbG.position.set(microbotPosAr[18], microbotPosAr[19], microbotPosAr[20]);
+	  scene.add(mbG);
+
+	  var mbH = createMicrobot(microbotMesh);
+	  mbH.position.set(microbotPosAr[21], microbotPosAr[22], microbotPosAr[23]);
+	  scene.add(mbH);
+
+	  //an array that holds all of the hovering microbots
+	  var mbHoverArray = [mbA, mbB, mbC, mbD, mbE, mbF, mbG, mbH];
+
+	  //-------------------------------------------------------------------------------------------
+	  //-------------SETUP THE MICROBOTS TO HOVER WHEN THE MOUSE IS OVER THE CANVAS----------------
+	  //-------------------------------------------------------------------------------------------
+
+	  //call this function when the moust is hovering over the canvas
+	  function oneStepHover(){
+
+	    //tweak the position of each of the microbots in the direction of a random vector
+	    for (var i=0; i<mbHoverArray.length; i++){
+
+	      //produces a random whole number between -5 and 5
+	      var randomX = Math.floor(Math.random() * 10) - 5; 
+	      var randomY = Math.floor(Math.random() * 10) - 5;
+	      var randomZ = Math.floor(Math.random() * 10) - 5;
+
+	      //adjust the x, y, and z position of the microbot
+	      mbHoverArray[i].position.x += randomX/20;
+	      mbHoverArray[i].position.y += randomY/20;
+	      mbHoverArray[i].position.z += randomZ/20;
+
+	      //rotate the microbot in the y direction (so it jitters a bit more random-looking)
+	      var randomRotY = (Math.random()-0.5) * Math.PI/30;
+	      mbHoverArray[i].rotation.set(0, randomRotY, 0);
+
+	    }
+	    render();
+	  }
+
+	  //when the mouse moves, if it is over the canvas, then toggle the oneStepHover() function
+	  function onMouseMove (event) {
+	    var newx = event.clientX;
+	    var newy = event.clientY;
+
+	    if (newx<window.innerWidth * 0.9 && newx>window.innerWidth * 0.1 && newy<655 && newy>155 ){
+	      oneStepHover();
+	    }
+
+	  };
+
+	  //----------------------------------------------------------------------------------------------
+	  //---------------------ANIMATION FOR MICROBOTS THAT SHOOT AT BAYMAX-----------------------------
+	  //----------------------------------------------------------------------------------------------
+
+	  //these microbots will be used in the animation for Yokai shooting at Baymax
+	  //create the first microbot, clone the rest based on microbot1
+	  var microbot1 = createMicrobot(microbotMesh);
+	  microbot1.position.set(JenniferChienDemoParams.mbOrigX, JenniferChienDemoParams.mbOrigY, JenniferChienDemoParams.mbOrigZ);
+	  scene.add(microbot1);
+
+
+	  //arrays to hold the microbots
+	  var microbotArray1 = [microbot1];
+	  var microbotArray2 = [];
+
+	  //takes in an array and the number of microbots to add into the array, clones the desired number of robots and fills the array the specified amount
+	  function fillMicrobotArray(mbArray, numMBs){
+	    for (var i=0; i<numMBs; i++){
+	      var microbotClone = microbot1.clone();
+	      mbArray.push(microbotClone);
+	    }
+	  };
+
+	  //creates 4 microbots and adds them to microbotArray1 so they can be accessed again later
+	  fillMicrobotArray(microbotArray1, 4);
+	  //creates 6 microbots and adds them to micrbotArray2 so they can be accessed again later
+	  fillMicrobotArray(microbotArray2, 6)
+
+	  //this holds the simple animation parameters, just so we don't have random constants in the code and so that variables are easier to tweak, all located in the same place
+	  var mbAnimParams = {
+	    dx: -1,
+	    microbotCounterCurr: 0,
+	    mbGap: 20,
+
+	    tStart: 30,
+	    tBreak: 25,
+
+	    baymaxDX: -2,
+
+	    bayMaxShaketStart: 135,
+	    bayMaxShaketEnd: 490
+	  };
+
+	  var animationState; //global variable so that we can access it outside of animation functions
+
+	  function resetAnimationState(){
+	    animationState = {
+	      time: 0
+	    };
+	  };
+
+	  resetAnimationState();
+
+	  //this function will be called at each update of the animationState.time variable
+	  function updateState(){
+	    console.log("updateState()");
+	    animationState.time += 1;
+	    console.log("time ", animationState.time);
+
+	    //reset the microbot position every 7 time steps so they don't stray too far from their original position
+	    if (animationState.time % 7 == 0){
+	      console.log("re-position the microbots...");
+	      for (var i=0; i<mbHoverArray.length; i++){
+	        mbHoverArray[i].position.set(microbotPosAr[(i*3)], microbotPosAr[(i*3)+1], microbotPosAr[(i*3)+2]);
+	      };
+	    };
+	   
+	    //get floating microbots to move when the animation is being called
+	    oneStepHover();
+
+	    //takes in microbotArray1 or microbotArray 2 and loops through adjusting the position of each microbot, make alternative calls to this function to control the position of all 10 microbots simultaneously
+	    function callingMoveOn5Microbots(startTime, microbotArray){
+	    //toggle the moving of the microbots in array 1
+	      for (var i=0; i < microbotArray.length; i++){
+
+	        var spaceBtwnMB = mbAnimParams.mbGap * i;
+
+	        if (animationState.time > spaceBtwnMB + startTime){
+	          scene.add(microbotArray[i]);
+	          microbotArray[i].position.x += mbAnimParams.dx;
+	        }
+	        if (microbotArray[i].position.x < -JenniferChienDemoParams.backdropX/4){
+	          scene.remove(microbotArray[i]);
+	        }
+	      }
+	    }
+
+	    //start first 5 microbots
+	    if (animationState.time > mbAnimParams.tStart && animationState.time < 220){
+	      callingMoveOn5Microbots(mbAnimParams.tStart, microbotArray1);
+	    };
+
+	    //loop through all microbots in microbotArray1 and reset their position to original
+	    function resetMBPos(){
+	      for (var i=0; i < microbotArray1.length; i++){
+
+	        scene.remove(microbotArray1[i]);
+	        microbotArray1[i].position.set(JenniferChienDemoParams.mbOrigX, 
+	                                      JenniferChienDemoParams.mbOrigY, 
+	                                      JenniferChienDemoParams.mbOrigZ);
+
+	      };
+	    };
+
+	    //once the first 5 microbots have gone through, reset their position
+	    if (animationState.time == 220){
+	      resetMBPos();
+	    };
+
+	    //call second round of 6 microbots
+	    if (animationState.time > mbAnimParams.tStart + (microbotArray1.length * mbAnimParams.mbGap) + mbAnimParams.tBreak && animationState.time < 390){
+
+	      callingMoveOn5Microbots(mbAnimParams.tStart + (microbotArray1.length * mbAnimParams.mbGap) + mbAnimParams.tBreak, microbotArray2);
+	    };
+
+	    //repeat calling first 5 microbots
+	    if (animationState.time > mbAnimParams.tStart + (microbotArray1.length * mbAnimParams.mbGap) + (mbAnimParams.tBreak*2) + (microbotArray2.length * mbAnimParams.mbGap)){
+
+	      callingMoveOn5Microbots(mbAnimParams.tStart + (microbotArray1.length * mbAnimParams.mbGap) + (mbAnimParams.tBreak*2) + (microbotArray2.length * mbAnimParams.mbGap), microbotArray1);
+
+	    };
+	    
+
+
+
+	    //if baymax is being hit by the microbots, shift his position left and right
+	    if (animationState.time > mbAnimParams.bayMaxShaketStart && animationState.time < mbAnimParams.bayMaxShaketEnd){
+	      if (animationState.time%15 == 0){
+	        baymax.position.x += mbAnimParams.baymaxDX;
+	      }
+	      if (animationState.time%30 == 0){
+	        baymax.position.x -= mbAnimParams.baymaxDX * 2;
+	      }
+	    }
+	  };
+
+
+	  function firstState(){
+	    resetAnimationState();
+	    render();
+	  }
+
+
+
+	  //keyboard callback linked to this function so you can check if just a single step in the animation works correctly
+	  function oneStep(){
+	    console.log("oneStep");
+	    updateState();
+	    render();
+	  }
+
+
+
+	  // Stored so that we can cancel the animation if we want
+	  var animationId = null;                
+	   
+
+	  function animate(timestamp) {
+	      oneStep();
+	      animationId = requestAnimationFrame(animate);
+	  }
+
+	   
+	  function stopAnimation() {
+	    if( animationId != null ) {
+	      cancelAnimationFrame(animationId);
+	    }
+	  }
+
+	  //-------------------------------------------------------------------------------------------
+	  //-------------------------CONTINUE SETTING UP THE SCENE-------------------------------------
+	  //----------------------------STARTING WITH THE FLOOR----------------------------------------
+	  //-------------------------------------------------------------------------------------------
+
+	  //holds the first tile for the floor (altogether the floor tiles are 10 * 10)
+	  var floor;
+
+	  //load the image to map onto the floor tiles
+	  TW.loadTexture( 
+	    'carpet2.png',
+	    function(texture){
+	      var geom = new THREE.BoxGeometry(JenniferChienDemoParams.backdropX/10, 15, JenniferChienDemoParams.backdropX/(2*10));
+	      var mat = new THREE.MeshPhongMaterial({
+	          color: THREE.ColorKeywords.white,
+	          shininess: 5,
+	          map: texture
+	        });
+	      floor = new THREE.Mesh(geom, mat);
+	      floor.material.side = THREE.DoubleSide;
+	      floor.position.y = -15/2;
+	      scene.add(floor);
+
+	      //tile the floor from back to front, left to right
+	      for (var i=0; i<10; i++){
+	        for (var j=0; j<10; j++){
+	          var floorTile = floor.clone();
+	          floorTile.position.x = -JenniferChienDemoParams.backdropX/2 + JenniferChienDemoParams.backdropX/(10*2) + (i*JenniferChienDemoParams.backdropX/10);
+	          floorTile.position.z = -JenniferChienDemoParams.backdropX/4 + JenniferChienDemoParams.backdropX/(2*2*10) + (j*JenniferChienDemoParams.backdropX/(10*2));
+	          scene.add(floorTile);
+	        }
+	      };
+	      render();
+	    });
+
+
+	//-------------------------------------------------------------------------------------------
+	//--------------------------------NOW SETUP THE BACK WALL------------------------------------
+	//---THIS CAN BE TRICKY BECAUSE IT HAS TO BE A CUTOUT FOR THE WINDOWS TO WORK PROPERLY-------
+	//-------------------------------------------------------------------------------------------
+
+	  //bottom strip of the wall setup
+	  var btmWall = new THREE.Mesh(new THREE.PlaneGeometry(JenniferChienDemoParams.backdropX, JenniferChienDemoParams.wallBottomStripY), new THREE.MeshPhongMaterial({color: JenniferChienDemoParams.wallColor, side: THREE.DoubleSide}));
+	  btmWall.position.set(0, JenniferChienDemoParams.wallBottomStripY/2, -JenniferChienDemoParams.backdropX/4);
+	  scene.add(btmWall);
+
+	  //top strip of the wall
+	  var topWall = btmWall.clone();
+	  topWall.position.y = (JenniferChienDemoParams.wallBottomStripY* 3/2) + (JenniferChienDemoParams.windSide);
+	  scene.add(topWall);
+
+	  //create the strip of wall that goes between the windows
+	  var windowGapWallBtwnR = new THREE.Mesh(new THREE.PlaneGeometry(JenniferChienDemoParams.windowPadding, JenniferChienDemoParams.windSide), new THREE.MeshPhongMaterial({color: JenniferChienDemoParams.wallColor, side: THREE.DoubleSide}));
+	  windowGapWallBtwnR.position.set(JenniferChienDemoParams.windSide/2 + JenniferChienDemoParams.windowPadding/2, JenniferChienDemoParams.backdropX/4,-JenniferChienDemoParams.backdropX/4);
+	  scene.add(windowGapWallBtwnR);
+
+	  var windowGapWallBtwnL = windowGapWallBtwnR.clone();
+	  windowGapWallBtwnL.position.x = -windowGapWallBtwnR.position.x;
+	  scene.add(windowGapWallBtwnL);
+
+	  //create the strip of wall that goes on the sides of the windows
+	  var windowGapWallSideR = new THREE.Mesh(new THREE.PlaneGeometry(JenniferChienDemoParams.windowPadding/2, JenniferChienDemoParams.windSide), new THREE.MeshPhongMaterial({color: JenniferChienDemoParams.wallColor, side: THREE.DoubleSide}));
+	  windowGapWallSideR.position.set(JenniferChienDemoParams.windSide * 3/2 + JenniferChienDemoParams.windowPadding * 5/4, JenniferChienDemoParams.backdropX/4, -JenniferChienDemoParams.backdropX/4);
+	  scene.add(windowGapWallSideR);
+
+	  var windowGapWallSideL = windowGapWallSideR.clone();
+	  windowGapWallSideL.position.x = -windowGapWallSideR.position.x;
+	  scene.add(windowGapWallSideL);
+
+	var windowContainer, w2, w3;
+
+	//create the transparent part of the windows
+	function addWindows(){
+	  var pane1 = new THREE.PlaneGeometry(JenniferChienDemoParams.windSide, JenniferChienDemoParams.windSide);
+	  var pane1M = new THREE.MeshBasicMaterial({color: JenniferChienDemoParams.windowColor,
+	                                            transparent: true,
+	                                            side: THREE.DoubleSide,
+	                                            opacity: JenniferChienDemoParams.windOpacity
+	  });
+
+	  //center window
+	  windowContainer = new THREE.Object3D();
+	  var windowPane = new THREE.Mesh(pane1, pane1M);
+	  windowPane.position.set(0, JenniferChienDemoParams.backdropX/4, -JenniferChienDemoParams.backdropX/4);
+	  windowContainer.add(windowPane);
+
+	  //create the window frame (black)
+	  var edge1 = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, JenniferChienDemoParams.windSide, 6, 10), new THREE.MeshBasicMaterial({color: JenniferChienDemoParams.windowEdgeColor}));
+	  edge1.position.set(-JenniferChienDemoParams.windSide/2, JenniferChienDemoParams.backdropX/4, -JenniferChienDemoParams.backdropX/4);
+	  windowContainer.add(edge1);
+
+	  var edge2 = edge1.clone();
+	  edge2.position.x += JenniferChienDemoParams.windSide;
+	  windowContainer.add(edge2);
+
+	  var edge3 = edge1.clone();
+	  edge3.rotation.z = Math.PI/2;
+	  edge3.position.set(0, JenniferChienDemoParams.backdropX/4 - JenniferChienDemoParams.windSide/2, -JenniferChienDemoParams.backdropX/4);
+	  windowContainer.add(edge3);
+
+	  var edge4 = edge3.clone();
+	  edge4.position.y += JenniferChienDemoParams.windSide;
+	  windowContainer.add(edge4);
+
+	  var edge5 = edge4.clone();
+	  edge5.position.y -= JenniferChienDemoParams.windSide/2;
+	  windowContainer.add(edge5);
+
+	  scene.add(windowContainer);
+
+	  //clone the original window twice to create 3 windows overall in the scene, reposition as needed
+	  //right window
+	  w2 = windowContainer.clone();
+	  w2.position.x += JenniferChienDemoParams.windowPadding + JenniferChienDemoParams.windSide;
+	  scene.add(w2);
+
+	  //left window
+	  w3 = windowContainer.clone();
+	  w3.position.x -= JenniferChienDemoParams.windowPadding + JenniferChienDemoParams.windSide;
+	  scene.add(w3);
+	}
+
+	addWindows();
+
+
+
+
+
+	//-------------------------------------------------------------------------------------------
+	//-------------------------------WORK ON THE LIGHTING----------------------------------------
+	//-------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------------
+	//-----------------------------START WITH THE SPOTLIGHTS-------------------------------------
+	//-------------------------------------------------------------------------------------------
+	  //start with the spotlight that points at baymax
+	  //target for the light pointed at Baymax to point at
+	  var baymaxTarget = new THREE.Mesh(new THREE.SphereGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.white}));
+	  baymaxTarget.position.set(-JenniferChienDemoParams.backdropX/4, 0, 0);
+	  scene.add(baymaxTarget);
+
+	  //yellow ball to represent where the light pointed at Baymax is coming from 
+	  var lightContainerLeft = new THREE.Object3D();
+	  var yellowBall = new THREE.Mesh(new THREE.SphereGeometry(5, 10, 10), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.yellow}));
+	  lightContainerLeft.add(yellowBall);
+
+	  //-------------------------------------------------------------------------------------------
+	  //additional parts to make the light look more like a spotlight
+	  var outside = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 10, 10, 10, true), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.black}));
+	  outside.position.y += 3;
+	  lightContainerLeft.add(outside);
+
+	  //cap the cylinder (top of the spotlight)
+	  var circleTop = new THREE.Mesh(new THREE.CircleGeometry(6, 10, 10), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.black, side: THREE.DoubleSide}));
+	  circleTop.position.set(0, 5, 0);
+	  circleTop.rotation.x = Math.PI/2;
+	  circleTop.position.y += 3;
+	  lightContainerLeft.add(circleTop);
+
+	  //create a square for the front
+	  var rectangleCap = new THREE.Mesh(new THREE.PlaneGeometry(15, 15, 10, 10), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.black, side: THREE.DoubleSide}));
+	  rectangleCap.position.y = -2;
+	  rectangleCap.rotation.x = Math.PI/2;
+	  lightContainerLeft.add(rectangleCap);
+
+	  //set the position and rotate the spotlight so it looks more realistic
+	  lightContainerLeft.position.set(JenniferChienDemoParams.spl1x, JenniferChienDemoParams.spl1y - 30, JenniferChienDemoParams.spl1z);
+	  lightContainerLeft.rotation.set(0, Math.PI/6, -Math.PI/6);
+	  scene.add(lightContainerLeft);
+
+	  //add the actual spotlight to the scene
+	  var spl1 = new THREE.SpotLight(JenniferChienDemoParams.splColor, JenniferChienDemoParams.splIntensity, JenniferChienDemoParams.splDistance, JenniferChienDemoParams.splAngle, 0);
+	  spl1.position.set(JenniferChienDemoParams.spl1x, JenniferChienDemoParams.spl1y, JenniferChienDemoParams.spl1z);
+	  spl1.target = baymaxTarget;
+	  spl1.castShadow = true;
+	  scene.add(spl1);
+
+
+	  //-------------------------------------------------------------------------------------------
+	  //now work on the spotlight that points at YOKAI
+
+	  //target for the light pointed at Yokai to point at
+	  var yokaiTarget = new THREE.Mesh(new THREE.SphereGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({color: THREE.ColorKeywords.white}));
+	  yokaiTarget.position.set(JenniferChienDemoParams.backdropX/4, 0, 0);
+	  scene.add(yokaiTarget);
+
+	  //yellow ball to represent where the light pointed at Baymax is coming from 
+	  var lightY = lightContainerLeft.clone();
+	  lightY.rotation.set(0, -Math.PI/6, Math.PI/6);
+	  lightY.position.set(JenniferChienDemoParams.spl2x, JenniferChienDemoParams.spl2y - 30, JenniferChienDemoParams.spl2z);
+	  scene.add(lightY);
+
+	  //add the actual spotlight to the scene
+	  var spl2 = new THREE.SpotLight(JenniferChienDemoParams.splColor, JenniferChienDemoParams.splIntensity, JenniferChienDemoParams.splDistance, JenniferChienDemoParams.splAngle, 0);
+	  spl2.position.set(JenniferChienDemoParams.spl2x, JenniferChienDemoParams.spl2y , JenniferChienDemoParams.spl2z);
+	  spl2.target = yokaiTarget;
+	  spl2.castShadow = true;
+	  scene.add(spl2);  
+
+
+
+	//add ambient lighting (spotlight lighting is not enough to light up the entire scene)
+	var ambLight = new THREE.AmbientLight( JenniferChienDemoParams.ambLightColor, JenniferChienDemoParams.ambLightIntensity); // soft white light
+	scene.add( ambLight );
+
+
+
+//-------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
+// We always need a renderer
+
+	  var renderer = new THREE.WebGLRenderer();
+
+		var camera;
+		//set up our own camera with a very large far because we have a relatively large scene, as the camera moves around, we want to make sure we never cut out any parts of our scene
+		var cameraParams = {
+	        camFOVY: 90,
+	        aspectRatio: 1.55,
+	        near: 1,
+	        far: 500
+	      };
+
+	//create the camera
+	camera = new THREE.PerspectiveCamera(cameraParams.camFOVY, cameraParams.aspectRatio, cameraParams.near, cameraParams.far);
+
+	//adjust the position of the camera everytime we render (such as during the animation) relative to the time change
+	//the camera is setup to move in a circle relative to the origin, the radius of the circle is specified in JenniferChienDemoParams
+	function render(){
+	  camera.up.set(0, 1, 0);
+
+	  camera.position.x = 0 + JenniferChienDemoParams.camRotateRadius * Math.cos( JenniferChienDemoParams.camRotateConstant * animationState.time );  
+	  camera.position.y = JenniferChienDemoParams.backdropX/4;       
+	  camera.position.z = 0 + JenniferChienDemoParams.camRotateRadius * Math.sin( JenniferChienDemoParams.camRotateConstant * animationState.time );
+
+	  camera.lookAt(new THREE.Vector3(0, 0, 0));
+	  
+	  renderer.render( scene, camera );
+	}
+
+	TW.mainInit(renderer, scene);
+
+	// invoke it, or you won't see anything
+	render();
+
+	  // ===========================================================
+
+	  firstState();
+
+	  //set the keyboard callbacks for the animations
+	  TW.setKeyboardCallback("0",firstState,"reset animation");
+	  TW.setKeyboardCallback("1",oneStep,"advance by one step");
+	  TW.setKeyboardCallback("g",animate,"go:  start animation");
+	  TW.setKeyboardCallback(" ",stopAnimation,"stop animation");
+
+	  document.addEventListener( 'mousemove', onMouseMove );
+
+	  //the gui is so that the viewer can change the window color because I could not choose which one I liked more. In the movie, the windows are a yellow-ish color, but I like the aesthetic of the blue window panes.
+
+	  var gui = new dat.GUI();
+	  gui.add(JenniferChienDemoParams, 'windowColor', {blue: "#00ffff", yellow: "#f4d142"}).onChange(function () {
+	    scene.remove(windowContainer);
+	    scene.remove(w2);
+	    scene.remove(w3);
+	    console.log("window color changed!");
+	    addWindows();
+	    render();
+	  });
+  
+	</script>
+
+	<div id="thisprojectcontains">
+		<h3>This project contains:</h3>
+		<ul>
+			<li>hierarchical modeling</li>
+			<li>material, lighting and shading</li>
+			<li>changing camera position</li>
+			<li>curved lines or surfaces</li>
+			<li>textures and texture-mapping</li>
+			<li>transparency</li>
+			<li>user interaction</li>
+			<li>animation</li>
+		</ul>
+	</div>
+
+	<div id="specs">
+		<div id="baymax">
+			<h2>Specifics:</h2>
+			<h3>Baymax:</h3>
+
+			<img src="bmaxF.png">
+			<img src="bmaxB.png">
+			
+			<br>
+			<img src="bmaxL.png">
+			<img src="bmaxR.png">
+
+			<p id = "baymaxSpecs"> &emsp;Baymax was created out of a modified <a href="http://cs.wellesley.edu/~cs307/lectures/tubeDemo.html">TubeRadialGeometry</a> (geometry originally created by Katherine Kjeer). The fingers were created using a <a href="https://threejs.org/docs/?q=sphere#Reference/Geometries/SphereGeometry">sphereGeometry</a> for the fingertips and a <a href="https://threejs.org/docs/?q=torus#Reference/Geometries/TorusGeometry">torusGeometry</a> for the length of the finger. In these four images, you can see that baymax is covered in a MeshPhongMaterial and that the spotlight is hitting baymax from various angles to emphasize his curves and how the light bounces off of him. In addition, the body of baymax was created by overlapping two TubeRadialGeometries over each other, which is why the way the light land on the body is slightly distorted around the waist. The eyes and nose-bridge are created in lambert material because they are not intended to reflect any light (or contain any shines).</p>
+		</div>
+
+		<div id="yokai">
+			<h3>Yokai:</h3>
+			<img src="yokaiL.png">
+			<img src="yokaiFace.png">
+			<img src="yokaiR.png">
+
+			<p id="yokaiSpecs">&emsp;This version of Yokai (the evil villain character in Big Hero Six) is a more abstract version, very similar to the shape of <a href="http://vignette4.wikia.nocookie.net/spiritedaway/images/1/11/Spirited%2BAway%2B_4600d63761c95317434aa008b75caa03.jpg/revision/latest?cb=20121202180143">No-Face from Spirited Away</a>. He was created out of the same modified (parameterized) TubeRadialGeometry by Katerine Kjeer. His facemask was created by texture mapping an image of the face on to a scaled sphere. The tricky part was having the image of the mask within the right proportion to the entire image so that it would map onto the desired part of the sphereGeometry. The actual image of the mask that is mapped onto the sphere is the image on the left. <br> So, as you can see, the actual mask does not take up more than about 1/9th of the image. This is how we were able to show most of the mask on the outward-facing part of the sphere. </p>
+			<p id="yokaiMask"><img src="yokaiMask.png" width=20%></p> 
+
+		</div>
+		<div id="microbot">
+			<h3>Microbots:</h3>
+			<p><img src="mb1.png"></p>
+			<p><img src="mb2.png"></p>
+			<p><img src="mb3.png"></p>
+
+			<p id="microbotSpecs"> &emsp;The microbots were created using a simple sphereGeometry for the center. On the right side, two cylinderGeometries were attached to each other. For the left side, I cloned the right side and rotated it about the center to the left side. One of the biggest struggles with the microbots was getting the texture to look just right. I started with a MeshPhongMaterial, but I was setting up the details wrong for the phongMaterial, so the javascript was just being ignored. The result was that I was getting light reflecting off of the microbot but the specularity was not changing at all. Lesson learned: when in doubt, look back at the documentation once again!</p>
+
+		</div>
+		<div id="CodingNotes">
+
+			<div id="coolCodingNotes1">
+				<h3>Other Cool Coding Notes:</h3>
+				
+				<img src="mbOriginalPos.png"> <p> &emsp;One of the problems I ran into with the animation was that the microbots would stray so far away from their original position that they pass through the back wall and into the background. This does not obey the standard laws of physics!! This would mess with the way the viewer interacts, views, and understand the elements in the scene! Thus, I had to find a way to keep the hovering action but keep the microbots from straying too far. I did this by storing the microbots' original positions in an array and (using row major order), every couple of animation steps (during the animation), the microbots get reset to their original position.</p> <br> 
+
+			</div>
+
+
+			<p id="coolCodingNote2">
+				<img src="mbShooting1.png">
+				<img src="mbShooting2.png">
+				<img src="mbShooting3.png">
+				<img src="mbShooting4.png">
+
+				<div id="codingNote2Text">
+					<p>&emsp;The biggest hurdle in creating the animation for this project was trying to keep it as modular as possible. Originally, I had a ton of lines of code creating and uniquely naming each microbots (1-11) and storing them in the arrays "microbotArray1" and "microbotArray2". Later, I realized that one does not need the unique names for the microbots as long as the microbots are in the array because they can be accessed through the array. <br>
+					&emsp;In addition, I was able to create the function <b>fillMicrobotArray()</b> to fill the array with the desired number of microbots. The way the animation works (later on in the code) is just by looping through every element in the microbot array, not specific to the number of microbots, so the parameterization of the number of microbots to filled into the arrays was just a bit of icing on top of the cake in case I wanted to adjust the animation later or reuse this code (and add more scenes from Big Hero Six).<br>
+					As we get to the <b>callingMoveOn5Microbots()</b> function, the function takes in two parameters: startTime and a microbotArray. This piece of code is one I am most proud of and I spent a lot of time just thinking about how to construct it. Basically, it loops through each microbot in the array and adds it to the scene, spaced apart by the time mbGap. In addition, each microbot already in the scene is moved to the left (mimicking the shooting motion towards Baymax). After each of the microbots has reached a specified x position (within Baymax), they are removed from the scene. The reason we need to take in the startTime as a parameter is that this function is called three times in each of the bursts of shootings. If we did not embed the start time into the if statement, then all three bursts of shootings would start simultaneously.<br>
+					&emsp;Note: The <b>callingMoveOn5Microbots()</b> function does not explicitly only move 5 microbots. When I was originally writing this code, each of the bursts of microbots shooting at Baymax had 5 microbots (this, thanks to the earlier implementation of arrays could be adjusted to accomodate as many microbots as desired), however I never changed the name of this function. In actuality, the first and 3rd burst of shootings have 5 microbots; the second burst of shooting at Baymax has 6 microbots.<br>
+					&emsp;The <b>resetMBPos()</b> function can be easily tweaked to take in the array of microbots is resetting. For this animations purposes, it only needs to reset the position of the microbots in microbotArray1. This function is called once, at animationState.time 220 after the first burst of shooting has occured. If I had not included the if statement, the reset function would have been called with each <b>updateState()</b> call, effectively repositioning the microbots everytime we called the animationFrame.<br>
+					The last couple of if statements are just the same as the first, only differeing in the time at which the burst starts.
+					</p><br>
+				</div>
+
+			</p>
+
+			<div id="transparency1">
+			<img src="transparency.png"> <p id="transparencyText">&emsp;In terms of the work I did with transparency, I had to create the back grey wall so it had cutouts for the windows so the windows could act as see-through objects in the scene. In addition, the windows toggle between yellow (how they actually look in the movie) and blue (how they look by default).</p>
+			</div>
+
+		</div>
+	</div>
+
+	<div id="endcreditsTY">
+		<h3>Thank Yous:</h3>
+		<p>Overall, I am really proud with out this project turned out. It really comes together as a short but sweet action scene that I could see myself working on more in the future (time allowing). I wanted to say a HUGE thank you to Scott Anderson for offering this class at Wellesley, I really enjoyed learning about how graphics and animation work, especially with the applications in movie production (pixar shorts, etc). I also wanted to say thank you to Jasmine Davis, the SI and Helproom tutor for this course. Without you I would not have made it through any of this and would not have learned to love graphics as much as I have. From the basic concepts to the little bugs, your humor and presence was always helpful. Thank you.</p><br>
+		<img src="hug.gif">
+	</div>
+
+</body>
+</html>
